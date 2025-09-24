@@ -77,6 +77,34 @@ tbl_merge(tbls = list(m1, m2),
   tab_spanner = c("**Partial model**", "**Full model**")) 
 ```
 
+
+
+
+
+### Table  4: ordinal regression analysis 
+ 
+```{r}
+#order the food security variable
+data <- data %>% mutate(fs = ordered(fs))
+
+m1 <- polr(fs ~ q37,
+           data = data,
+           Hess = TRUE) %>%
+  tbl_regression(exponentiate = TRUE)   # gives proportional-odds ORs
+
+m2 <- polr(fs ~ q37 + agee + sex + job + education + religion + urbrur,
+           data = data,
+           Hess = TRUE) %>%
+  tbl_regression(exponentiate = TRUE)
+
+tbl_merge(
+  tbls = list(m1, m2),
+  tab_spanner = c("**Partial model**", "**Full model**"))
+
+```
+
+
+
  
 
  
