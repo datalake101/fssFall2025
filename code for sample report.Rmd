@@ -1,0 +1,82 @@
+---
+title: "Relationship between food security and support for democracy in Africa"
+author: "HSS 3101B"
+date: "`r Sys.Date()`"
+output: word_document
+---
+
+#setup the environment
+```{r, include=FALSE}
+# load necessary libraries
+# install.packages("pacman")
+library(pacman)
+pacman::p_load(kableExtra, labelled, dplyr, NHANES, gtsummary, MASS, ggplot2, car, patchwork, forcats)
+```
+
+
+#set up data
+```{r}
+library(haven)
+url <- "https://raw.githubusercontent.com/datalake101/dataLakes/master/afrobarometerCleaned1.dta"
+df <- read_dta(url) |> as_factor()  
+
+df <- df %>%
+  mutate(across(c(fs, fss, q37),
+                ~ fct_drop(as_factor(.))))
+
+
+```
+
+
+## Table 1: Description of study variables:
+
+```{r, echo=FALSE}
+data = df %>% 
+  dplyr::select(81, 307, 309,1:9)
+
+look_for(data) %>%
+  dplyr::select(variable, levels) %>%
+  kable()
+```
+
+## Table 2: Descriptive statistics
+```{r,echo = FALSE,message = FALSE,  warning = FALSE}
+ 
+  tbl_summary(
+    data,
+    include = c("sex", "resi", "religion", "job", "education", "livingConditions", 
+"ws", "fs", "urbrur"),
+    by = q37, 
+    percent = "row",
+    missing = "no",
+    digits = all_categorical() ~ 2) |> 
+  add_n() |>  
+  add_p() |> 
+  modify_header(label = "**Variable**") |> 
+  bold_labels()
+```
+
+
+
+## Table  3: Binary regression analysis 
+
+```{r,  message = FALSE, echo = FALSE, warning = FALSE}
+m1 <- data %>% 
+  glm(fss ~ q37, 
+      family = binomial, 
+      data = .) %>% 
+  tbl_regression(exponentiate = T)
+
+m2 <- data %>% 
+  glm(fss ~ q37 + agee + sex + job + education +  religion + urbrur, 
+      family = binomial, 
+      data = .) %>% 
+  tbl_regression(exponentiate = T)
+
+tbl_merge(tbls = list(m1, m2),
+  tab_spanner = c("**Partial model**", "**Full model**")) 
+```
+
+ 
+
+ 
